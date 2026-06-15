@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modura Analytics Kazi Pro | Build ATS-Friendly Resumes</title>
+    <title>Modura Analytics Kazi Pro | AI-Powered Resume Builder</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -16,6 +16,7 @@
             <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
             <ul class="nav-links" id="navLinks">
                 <li><a href="#" onclick="showSection('home')">Home</a></li>
+                <li><a href="#" onclick="showSection('ai-settings')" class="nav-ai">&#9889; AI Settings</a></li>
                 <li><a href="#" onclick="showSection('matcher')">CV Matcher</a></li>
                 <li><a href="#" onclick="showSection('resume')">Resume Builder</a></li>
                 <li><a href="#" onclick="showSection('cover')">Cover Letter</a></li>
@@ -26,15 +27,115 @@
         </div>
     </nav>
 
+    <!-- AI SETTINGS SECTION -->
+    <section id="ai-settings" class="section">
+        <div class="container">
+            <h2 class="section-heading">&#9889; AI Settings</h2>
+            <p class="section-sub">Connect your free API key to unlock AI-powered resume writing, cover letter generation, and smart job matching.</p>
+
+            <div class="ai-settings-layout">
+                <div class="form-panel">
+                    <div class="ai-status-box" id="ai-status-box">
+                        <div class="ai-status-dot" id="ai-status-dot"></div>
+                        <span id="ai-status-text">AI Not Connected</span>
+                    </div>
+
+                    <h3 class="form-section-title">Choose AI Provider</h3>
+                    <div class="ai-provider-options">
+                        <label class="ai-provider-option">
+                            <input type="radio" name="ai-provider" value="gemini" checked onchange="updateAIProvider()">
+                            <div class="ai-provider-card">
+                                <strong>Google Gemini</strong>
+                                <span class="ai-provider-badge free">FREE</span>
+                                <p>Free tier: 60 requests/min. Get your key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></p>
+                            </div>
+                        </label>
+                        <label class="ai-provider-option">
+                            <input type="radio" name="ai-provider" value="openai" onchange="updateAIProvider()">
+                            <div class="ai-provider-card">
+                                <strong>OpenAI (ChatGPT)</strong>
+                                <span class="ai-provider-badge paid">PAID</span>
+                                <p>Requires billing. Get your key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></p>
+                            </div>
+                        </label>
+                        <label class="ai-provider-option">
+                            <input type="radio" name="ai-provider" value="cohere" onchange="updateAIProvider()">
+                            <div class="ai-provider-card">
+                                <strong>Cohere</strong>
+                                <span class="ai-provider-badge free">FREE</span>
+                                <p>Free trial available. Get your key at <a href="https://dashboard.cohere.com/api-keys" target="_blank">dashboard.cohere.com/api-keys</a></p>
+                            </div>
+                        </label>
+                        <label class="ai-provider-option">
+                            <input type="radio" name="ai-provider" value="huggingface" onchange="updateAIProvider()">
+                            <div class="ai-provider-card">
+                                <strong>Hugging Face</strong>
+                                <span class="ai-provider-badge free">FREE</span>
+                                <p>Free inference API. Get your token at <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a></p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top:20px;">
+                        <label>API Key / Token *</label>
+                        <div class="api-key-input">
+                            <input type="password" id="ai-api-key" placeholder="Paste your API key here...">
+                            <button class="btn btn-small" onclick="toggleAPIKeyVisibility()">Show</button>
+                        </div>
+                        <p class="hint">Your API key stays in your browser only. It is never sent to our servers.</p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="saveAISettings()">Save Settings</button>
+                        <button class="btn btn-secondary" onclick="testAIConnection()">Test Connection</button>
+                    </div>
+
+                    <div class="ai-test-result" id="ai-test-result"></div>
+                </div>
+
+                <div class="ai-info-panel">
+                    <div class="ai-feature-card">
+                        <h4>&#9889; AI Resume Writer</h4>
+                        <p>Generate a professional resume from your details. AI writes your summary, restructures experience, and optimizes for ATS.</p>
+                    </div>
+                    <div class="ai-feature-card">
+                        <h4>&#128221; AI Cover Letter Generator</h4>
+                        <p>Generate a tailored cover letter that matches the job description and highlights your most relevant qualifications.</p>
+                    </div>
+                    <div class="ai-feature-card">
+                        <h4>&#128269; AI Job Matcher</h4>
+                        <p>Get intelligent analysis of how well your CV matches a job description, with specific improvement suggestions.</p>
+                    </div>
+                    <div class="ai-feature-card">
+                        <h4>&#128161; AI Content Improver</h4>
+                        <p>Improve your resume bullet points with stronger action verbs, measurable results, and professional language.</p>
+                    </div>
+                    <div class="ai-setup-guide">
+                        <h4>How to Get a Free API Key</h4>
+                        <ol>
+                            <li>Go to <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></li>
+                            <li>Sign in with your Google account</li>
+                            <li>Click "Create API Key"</li>
+                            <li>Copy the key and paste it above</li>
+                            <li>Select "Google Gemini" as provider</li>
+                            <li>Click "Save Settings"</li>
+                        </ol>
+                        <p class="hint">Google Gemini is completely free for personal use (60 requests/minute).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- HOME SECTION -->
     <section id="home" class="section active">
         <div class="hero">
             <div class="hero-content">
-                <h1>Build Recruiter-Ready Resumes, Cover Letters, and Job Emails in Minutes</h1>
-                <p class="hero-sub">Create ATS-friendly documents that pass automated screening systems and get you noticed by hiring managers — no AI, no login, no payment required.</p>
+                <h1>AI-Powered Resumes, Cover Letters, and Job Emails in Minutes</h1>
+                <p class="hero-sub">Create ATS-friendly documents that pass automated screening systems. Use AI to generate professional content, or build manually — no login, no payment required.</p>
                 <div class="hero-buttons">
                     <button class="btn btn-primary" onclick="showSection('matcher')">Match CV to Job</button>
-                    <button class="btn btn-outline" onclick="showSection('about')">Learn More</button>
+                    <button class="btn btn-outline" onclick="showSection('resume')">Build Resume Manually</button>
                 </div>
             </div>
         </div>
@@ -137,6 +238,7 @@
 
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="matchCVToJob()">Match CV to Job</button>
+                        <button class="btn btn-ai" onclick="aiMatchCVToJob()">&#9889; AI Deep Match</button>
                         <button class="btn btn-secondary" onclick="clearMatcherForm()">Clear All</button>
                     </div>
                 </div>
@@ -266,6 +368,7 @@
                     </div>
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="generateResume()">Generate Resume</button>
+                        <button class="btn btn-ai" onclick="aiGenerateResume()">&#9889; AI Write Resume</button>
                         <button class="btn btn-secondary" onclick="clearResumeForm()">Clear Form</button>
                     </div>
                 </div>
@@ -333,6 +436,7 @@
                     </div>
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="generateCoverLetter()">Generate Cover Letter</button>
+                        <button class="btn btn-ai" onclick="aiGenerateCoverLetter()">&#9889; AI Write Cover Letter</button>
                         <button class="btn btn-secondary" onclick="clearCoverForm()">Clear Form</button>
                     </div>
                 </div>

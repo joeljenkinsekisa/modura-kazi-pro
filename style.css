@@ -923,3 +923,240 @@ body {
         max-height: none;
     }
 }
+
+/* ===== AI FEATURES ===== */
+.btn-ai {
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-ai::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-ai:hover::before {
+    left: 100%;
+}
+
+.btn-ai:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(124,58,237,0.4);
+}
+
+.nav-ai {
+    color: var(--gold) !important;
+    font-weight: 600;
+}
+
+.ai-settings-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.ai-status-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 20px;
+    border-radius: var(--radius);
+    background: var(--gray-100);
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.ai-status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #DC2626;
+}
+
+.ai-status-box.connected .ai-status-dot {
+    background: #16A34A;
+    box-shadow: 0 0 8px rgba(22,163,74,0.5);
+}
+
+.ai-provider-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ai-provider-option {
+    display: block;
+    cursor: pointer;
+}
+
+.ai-provider-option input {
+    display: none;
+}
+
+.ai-provider-card {
+    padding: 15px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.ai-provider-option input:checked + .ai-provider-card {
+    border-color: var(--blue);
+    background: var(--gray-50);
+}
+
+.ai-provider-card strong {
+    color: var(--navy);
+}
+
+.ai-provider-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.ai-provider-badge.free {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.ai-provider-badge.paid {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.ai-provider-card p {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.ai-provider-card a {
+    color: var(--blue);
+}
+
+.api-key-input {
+    display: flex;
+    gap: 8px;
+}
+
+.api-key-input input {
+    flex: 1;
+}
+
+.ai-test-result {
+    margin-top: 15px;
+    padding: 12px 15px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    display: none;
+}
+
+.ai-test-result.success {
+    display: block;
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+.ai-test-result.error {
+    display: block;
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.ai-info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.ai-feature-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 20px;
+    border-left: 4px solid #7C3AED;
+}
+
+.ai-feature-card h4 {
+    color: var(--navy);
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.ai-feature-card p {
+    color: var(--gray-500);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.ai-setup-guide {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.ai-setup-guide h4 {
+    color: var(--navy);
+    margin-bottom: 12px;
+}
+
+.ai-setup-guide ol {
+    margin-left: 18px;
+    margin-bottom: 10px;
+}
+
+.ai-setup-guide li {
+    padding: 4px 0;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+.ai-setup-guide a {
+    color: var(--blue);
+}
+
+.ai-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #7C3AED;
+    font-weight: 600;
+}
+
+.ai-loading::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid #7C3AED;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+    .ai-settings-layout {
+        grid-template-columns: 1fr;
+    }
+}

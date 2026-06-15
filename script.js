@@ -11,6 +11,362 @@ function toggleNav() {
     document.getElementById('navLinks').classList.toggle('active');
 }
 
+// ===== AI SETTINGS =====
+let aiConfig = {
+    provider: 'gemini',
+    apiKey: '',
+    model: ''
+};
+
+// Load AI settings from localStorage
+function loadAISettings() {
+    try {
+        const saved = localStorage.getItem('kazipro_ai_settings');
+        if (saved) {
+            aiConfig = JSON.parse(saved);
+            // Restore UI
+            const radios = document.querySelectorAll('input[name="ai-provider"]');
+            radios.forEach(r => { if (r.value === aiConfig.provider) r.checked = true; });
+            const keyInput = document.getElementById('ai-api-key');
+            if (keyInput) keyInput.value = aiConfig.apiKey;
+            updateAIStatus();
+        }
+    } catch(e) {}
+}
+
+function saveAISettings() {
+    const provider = document.querySelector('input[name="ai-provider"]:checked').value;
+    const apiKey = document.getElementById('ai-api-key').value.trim();
+
+    if (!apiKey) {
+        showAITestResult('Please enter an API key.', 'error');
+        return;
+    }
+
+    aiConfig.provider = provider;
+    aiConfig.apiKey = apiKey;
+
+    localStorage.setItem('kazipro_ai_settings', JSON.stringify(aiConfig));
+    updateAIStatus();
+    showAITestResult('Settings saved successfully!', 'success');
+}
+
+function updateAIProvider() {
+    aiConfig.provider = document.querySelector('input[name="ai-provider"]:checked').value;
+}
+
+function updateAIStatus() {
+    const statusBox = document.getElementById('ai-status-box');
+    const statusText = document.getElementById('ai-status-text');
+    if (aiConfig.apiKey) {
+        statusBox.classList.add('connected');
+        statusText.textContent = 'AI Connected (' + aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1) + ')';
+    } else {
+        statusBox.classList.remove('connected');
+        statusText.textContent = 'AI Not Connected';
+    }
+}
+
+function toggleAPIKeyVisibility() {
+    const input = document.getElementById('ai-api-key');
+    const btn = event.target;
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+    }
+}
+
+function showAITestResult(msg, type) {
+    const el = document.getElementById('ai-test-result');
+    el.textContent = msg;
+    el.className = 'ai-test-result ' + type;
+    setTimeout(() => { el.className = 'ai-test-result'; }, 5000);
+}
+
+function requireAI() {
+    if (!aiConfig.apiKey) {
+        alert('Please set up your AI API key first.\n\nGo to AI Settings in the navigation menu to configure your free API key.');
+        showSection('ai-settings');
+        return false;
+    }
+    return true;
+}
+
+async function callAI(prompt) {
+    if (aiConfig.provider === 'gemini') {
+        return await callGemini(prompt);
+    } else if (aiConfig.provider === 'openai') {
+        return await callOpenAI(prompt);
+    } else if (aiConfig.provider === 'cohere') {
+        return await callCohere(prompt);
+    } else if (aiConfig.provider === 'huggingface') {
+        return await callHuggingFace(prompt);
+    }
+    throw new Error('Unknown AI provider');
+}
+
+async function callGemini(prompt) {
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + aiConfig.apiKey;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+        })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'Gemini API error');
+    return data.candidates[0].content.parts[0].text;
+}
+
+async function callOpenAI(prompt) {
+    const url = 'https://api.openai.com/v1/chat/completions';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + aiConfig.apiKey
+        },
+        body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 2000
+        })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || 'OpenAI API error');
+    return data.choices[0].message.content;
+}
+
+async function callCohere(prompt) {
+    const url = 'https://api.cohere.ai/v1/generate';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + aiConfig.apiKey
+        },
+        body: JSON.stringify({
+            model: 'command',
+            prompt: prompt,
+            max_tokens: 2000
+        })
+    });
+    const data = await response.json();
+    if (data.message) throw new Error(data.message || 'Cohere API error');
+    return data.generations[0].text;
+}
+
+async function callHuggingFace(prompt) {
+    const url = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + aiConfig.apiKey
+        },
+        body: JSON.stringify({ inputs: prompt })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error || 'Hugging Face API error');
+    return Array.isArray(data) ? data[0].generated_text : data.generated_text || JSON.stringify(data);
+}
+
+async function testAIConnection() {
+    if (!aiConfig.apiKey) {
+        aiConfig.apiKey = document.getElementById('ai-api-key').value.trim();
+        aiConfig.provider = document.querySelector('input[name="ai-provider"]:checked').value;
+    }
+    if (!aiConfig.apiKey) {
+        showAITestResult('Please enter an API key first.', 'error');
+        return;
+    }
+    showAITestResult('Testing connection...', 'success');
+    try {
+        const result = await callAI('Say "Connection successful" in exactly two words.');
+        showAITestResult('Connection successful! AI is ready to use.', 'success');
+        updateAIStatus();
+    } catch(err) {
+        showAITestResult('Connection failed: ' + err.message, 'error');
+    }
+}
+
+// ===== AI POWERED FEATURES =====
+async function aiGenerateResume() {
+    if (!requireAI()) return;
+
+    const name = document.getElementById('r-name').value.trim();
+    const jobtitle = document.getElementById('r-jobtitle').value.trim();
+    const summary = document.getElementById('r-summary').value.trim();
+    const skills = document.getElementById('r-skills').value.trim();
+    const experience = document.getElementById('r-experience').value.trim();
+    const education = document.getElementById('r-education').value.trim();
+
+    if (!name || !jobtitle) {
+        alert('Please fill in at least your name and target job title.');
+        return;
+    }
+
+    const preview = document.getElementById('resume-preview');
+    preview.innerHTML = '<div class="ai-loading">AI is writing your resume...</div>';
+
+    const prompt = `You are a professional resume writer. Generate a clean, ATS-friendly resume for the following person. Use simple text formatting (no markdown, no tables, no columns). Use ALL CAPS for section headers.
+
+Name: ${name}
+Target Job Title: ${jobtitle}
+Professional Summary: ${summary || 'Write a 2-3 sentence professional summary tailored to this role.'}
+Skills: ${skills || 'Infer relevant skills for this role.'}
+Work Experience: ${experience || 'Write placeholder experience sections.'}
+Education: ${education || 'Write placeholder education.'}
+
+Generate a complete, professional resume with these sections:
+- HEADER (name, contact info)
+- PROFESSIONAL SUMMARY
+- KEY SKILLS
+- WORK EXPERIENCE (with bullet points showing achievements)
+- EDUCATION
+
+Make it sound professional, confident, and specific to the job title. Use strong action verbs and include measurable results where possible.`;
+
+    try {
+        const result = await callAI(prompt);
+        preview.innerText = result;
+    } catch(err) {
+        preview.innerHTML = '<p style="color:red;">AI Error: ' + escapeHtml(err.message) + '</p>';
+    }
+}
+
+async function aiGenerateCoverLetter() {
+    if (!requireAI()) return;
+
+    const name = document.getElementById('c-name').value.trim();
+    const email = document.getElementById('c-email').value.trim();
+    const phone = document.getElementById('c-phone').value.trim();
+    const jobtitle = document.getElementById('c-jobtitle').value.trim();
+    const company = document.getElementById('c-company').value.trim();
+    const manager = document.getElementById('c-manager').value.trim();
+    const skills = document.getElementById('c-skills').value.trim();
+    const experience = document.getElementById('c-experience').value.trim();
+    const jobdesc = document.getElementById('c-jobdesc').value.trim();
+
+    if (!name || !jobtitle || !company) {
+        alert('Please fill in your name, job title, and company name.');
+        return;
+    }
+
+    const preview = document.getElementById('cover-preview');
+    preview.innerHTML = '<div class="ai-loading">AI is writing your cover letter...</div>';
+
+    const prompt = `You are a professional cover letter writer. Generate a compelling, recruiter-friendly cover letter for the following job application. Use professional but confident tone.
+
+APPLICANT DETAILS:
+Name: ${name}
+Email: ${email}
+Phone: ${phone || 'Not provided'}
+Target Role: ${jobtitle}
+Company: ${company}
+Hiring Manager: ${manager || 'Hiring Manager'}
+Key Skills: ${skills || 'Not specified'}
+Experience Highlights: ${experience || 'Not specified'}
+
+JOB DESCRIPTION:
+${jobdesc || 'Write a general cover letter for this role.'}
+
+Generate a complete cover letter with:
+- Professional header with name and contact info
+- Opening paragraph (mention specific role and company)
+- Body paragraphs (connect experience to job requirements, use specific examples)
+- Closing paragraph (express enthusiasm, call to action)
+- Professional sign-off
+
+Make it sound natural, specific, and tailored to this exact role and company. Do not use generic templates.`;
+
+    try {
+        const result = await callAI(prompt);
+        preview.innerText = result;
+    } catch(err) {
+        preview.innerHTML = '<p style="color:red;">AI Error: ' + escapeHtml(err.message) + '</p>';
+    }
+}
+
+async function aiMatchCVToJob() {
+    if (!requireAI()) return;
+
+    const cvText = document.getElementById('matcher-cv-text').value.trim();
+    const jobTitle = document.getElementById('matcher-jobtitle').value.trim();
+    const company = document.getElementById('matcher-company').value.trim();
+    const jobDesc = document.getElementById('matcher-jobdesc').value.trim();
+    const name = document.getElementById('matcher-name').value.trim();
+    const email = document.getElementById('matcher-email').value.trim();
+    const phone = document.getElementById('matcher-phone').value.trim();
+
+    if (!cvText || !jobTitle || !company || !jobDesc) {
+        alert('Please fill in your CV text, job title, company name, and job description.');
+        return;
+    }
+
+    const preview = document.getElementById('match-cover-letter');
+    const placeholder = document.getElementById('matcher-placeholder');
+    placeholder.style.display = 'none';
+    document.getElementById('match-cover-section').style.display = 'block';
+    preview.innerHTML = '<div class="ai-loading">AI is analyzing your CV against the job description...</div>';
+
+    const prompt = `You are an expert ATS (Applicant Tracking System) analyst and career coach. Analyze the following CV against the job description and provide a comprehensive match analysis.
+
+CV TEXT:
+${cvText}
+
+JOB TITLE: ${jobTitle}
+COMPANY: ${company}
+JOB DESCRIPTION:
+${jobDesc}
+
+Provide your analysis in this exact format:
+
+MATCH SCORE: [score out of 100]
+
+MATCHED STRENGTHS:
+- [list specific skills/experience from CV that match the job]
+
+MISSING REQUIREMENTS:
+- [list job requirements not found in CV]
+
+KEYWORD GAPS:
+- [list important keywords from job description missing in CV]
+
+IMPROVEMENT SUGGESTIONS:
+- [specific actionable advice to improve the CV for this role]
+
+TAILORING TIPS:
+- [how to customize the CV for this specific company/role]
+
+Now write a tailored cover letter for this application:
+
+APPLICANT: ${name}
+EMAIL: ${email}
+PHONE: ${phone || 'Not provided'}
+
+The cover letter should:
+- Address the specific role and company
+- Reference matched strengths from the analysis
+- Address potential gaps proactively
+- Sound confident and specific
+- Be professional but personable`;
+
+    try {
+        const result = await callAI(prompt);
+        preview.innerText = result;
+    } catch(err) {
+        preview.innerHTML = '<p style="color:red;">AI Error: ' + escapeHtml(err.message) + '</p>';
+    }
+}
+
+// Load AI settings on page load
+loadAISettings();
+
 // ===== LOCAL STORAGE =====
 function saveFormData(section, data) {
     try {

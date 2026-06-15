@@ -490,3 +490,396 @@ function downloadBlob(blob, filename) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
+
+// ===== CV MATCHER =====
+let uploadedCVText = '';
+
+// PDF.js worker setup
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// File upload handling
+const uploadZone = document.getElementById('upload-zone');
+const cvFileInput = document.getElementById('cv-file');
+
+if (uploadZone) {
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleCVFile(file);
+    });
+
+    uploadZone.addEventListener('click', () => cvFileInput.click());
+}
+
+if (cvFileInput) {
+    cvFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) handleCVFile(file);
+    });
+}
+
+function handleCVFile(file) {
+    const filename = document.getElementById('upload-filename');
+    filename.textContent = 'Loaded: ' + file.name;
+    filename.style.color = '#16A34A';
+
+    if (file.type === 'application/pdf') {
+        extractPDFText(file);
+    } else if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            uploadedCVText = e.target.result;
+            document.getElementById('matcher-cv-text').value = uploadedCVText;
+        };
+        reader.readAsText(file);
+    } else {
+        alert('Please upload a PDF or TXT file.');
+    }
+}
+
+async function extractPDFText(file) {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            fullText += pageText + '\n';
+        }
+
+        uploadedCVText = fullText;
+        document.getElementById('matcher-cv-text').value = fullText;
+    } catch (err) {
+        alert('Error reading PDF. Please try pasting your CV text instead.');
+        console.error(err);
+    }
+}
+
+function matchCVToJob() {
+    const cvText = document.getElementById('matcher-cv-text').value.trim();
+    const jobTitle = document.getElementById('matcher-jobtitle').value.trim();
+    const company = document.getElementById('matcher-company').value.trim();
+    const jobDesc = document.getElementById('matcher-jobdesc').value.trim();
+    const name = document.getElementById('matcher-name').value.trim();
+    const email = document.getElementById('matcher-email').value.trim();
+
+    if (!cvText) {
+        alert('Please upload your CV or paste the CV text.');
+        return;
+    }
+    if (!jobTitle || !company || !jobDesc) {
+        alert('Please fill in the job title, company name, and job description.');
+        return;
+    }
+    if (!name || !email) {
+        alert('Please fill in your name and email for the cover letter.');
+        return;
+    }
+
+    // Extract keywords from job description
+    const jobKeywords = extractJobKeywords(jobDesc);
+    const cvLower = cvText.toLowerCase();
+
+    // Find matched keywords
+    const matched = [];
+    const missing = [];
+    jobKeywords.forEach(kw => {
+        if (cvLower.includes(kw.toLowerCase())) {
+            matched.push(kw);
+        } else {
+            missing.push(kw);
+        }
+    });
+
+    // Calculate match score
+    const totalKeywords = jobKeywords.length || 1;
+    const keywordScore = Math.round((matched.length / totalKeywords) * 60);
+
+    // Check for other factors
+    let bonusScore = 0;
+    if (cvText.length > 500) bonusScore += 10;
+    if (cvText.length > 1500) bonusScore += 5;
+    if (/\d+/.test(cvText)) bonusScore += 10;
+    if (jobTitle.toLowerCase().split(' ').some(w => cvLower.includes(w.toLowerCase()))) bonusScore += 10;
+    if (company.toLowerCase().split(' ').some(w => cvLower.includes(w.toLowerCase()) && w.length > 3)) bonusScore += 5;
+
+    const totalScore = Math.min(100, keywordScore + bonusScore);
+
+    // Display score
+    const scoreEl = document.getElementById('match-score-value');
+    scoreEl.textContent = totalScore + '%';
+    const scoreBox = document.getElementById('match-score-box');
+    if (totalScore >= 75) {
+        scoreBox.style.background = 'linear-gradient(135deg, #166534, #16A34A)';
+    } else if (totalScore >= 50) {
+        scoreBox.style.background = 'linear-gradient(135deg, #A16207, #EAB308)';
+    } else {
+        scoreBox.style.background = 'linear-gradient(135deg, #991B1B, #DC2626)';
+    }
+
+    // Show sections
+    document.getElementById('matcher-placeholder').style.display = 'none';
+    document.getElementById('match-summary-section').style.display = 'block';
+    document.getElementById('match-keywords-section').style.display = 'block';
+    document.getElementById('match-missing-section').style.display = 'block';
+    document.getElementById('match-suggestions-section').style.display = 'block';
+    document.getElementById('match-cover-section').style.display = 'block';
+
+    // Summary
+    let summaryHtml = '';
+    summaryHtml += '<p><strong>' + escapeHtml(jobTitle) + '</strong> at <strong>' + escapeHtml(company) + '</strong></p>';
+    summaryHtml += '<p>Your CV matches <strong>' + matched.length + ' of ' + totalKeywords + '</strong> key requirements from the job description.</p>';
+    if (totalScore >= 75) {
+        summaryHtml += '<p style="color:#16A34A;font-weight:600;">Strong match — Your CV aligns well with this role.</p>';
+    } else if (totalScore >= 50) {
+        summaryHtml += '<p style="color:#A16207;font-weight:600;">Moderate match — Consider adding missing keywords to strengthen your application.</p>';
+    } else {
+        summaryHtml += '<p style="color:#DC2626;font-weight:600;">Weak match — Significant gaps between your CV and job requirements.</p>';
+    }
+    document.getElementById('match-summary').innerHTML = summaryHtml;
+
+    // Matched keywords
+    let kwHtml = '';
+    matched.forEach(kw => {
+        kwHtml += '<span class="keyword-tag">' + escapeHtml(kw) + '</span>';
+    });
+    document.getElementById('match-keywords').innerHTML = kwHtml || '<p style="color:var(--gray-500);font-size:0.9rem;">No exact keyword matches found.</p>';
+
+    // Missing keywords
+    let missHtml = '';
+    missing.forEach(kw => {
+        missHtml += '<span class="keyword-tag">' + escapeHtml(kw) + '</span>';
+    });
+    document.getElementById('match-missing').innerHTML = missHtml || '<p style="color:var(--gray-500);font-size:0.9rem;">Great! No obvious keyword gaps detected.</p>';
+
+    // Suggestions
+    let sugHtml = '';
+    if (missing.length > 0) {
+        sugHtml += '<div class="suggestion-item"><span class="suggestion-icon">+</span>Add these missing keywords to your CV: ' + escapeHtml(missing.slice(0, 5).join(', ')) + '</div>';
+    }
+    if (cvText.length < 500) {
+        sugHtml += '<div class="suggestion-item"><span class="suggestion-icon">+</span>Your CV seems short. Add more detail about your experience and achievements.</div>';
+    }
+    if (!/\d+/.test(cvText)) {
+        sugHtml += '<div class="suggestion-item"><span class="suggestion-icon">+</span>Add measurable achievements (numbers, percentages, dollar amounts) to strengthen impact.</div>';
+    }
+    if (jobTitle.toLowerCase().split(' ').filter(w => w.length > 3).some(w => !cvLower.includes(w.toLowerCase()))) {
+        sugHtml += '<div class="suggestion-item"><span class="suggestion-icon">+</span>Include the exact job title "' + escapeHtml(jobTitle) + '" in your CV summary or skills section.</div>';
+    }
+    sugHtml += '<div class="suggestion-item"><span class="suggestion-icon">+</span>Tailor your professional summary to specifically address this role at ' + escapeHtml(company) + '.</div>';
+    document.getElementById('match-suggestions').innerHTML = sugHtml;
+
+    // Generate tailored cover letter
+    generateMatcherCoverLetter(cvText, jobTitle, company, jobDesc, matched, missing);
+}
+
+function extractJobKeywords(text) {
+    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','shall','can','this','that','these','those','i','we','you','he','she','it','they','me','us','him','her','its','them','my','our','your','his','their','what','which','who','whom','where','when','why','how','all','each','every','both','few','more','most','other','some','such','no','not','only','own','same','than','too','very','just','about','above','after','again','also','am','as','because','before','between','during','into','through','until','while','ability','experience','working','knowledge','including','using','must','need','required','role','position','job','looking','candidate','ideal','plus','prefer','strong','excellent','good','well','ability','abilities','years','year','related','similar','relevant']);
+
+    // Extract multi-word phrases first
+    const phrases = [];
+    const phrasePatterns = [
+        /data analysis/gi, /machine learning/gi, /project management/gi, /business intelligence/gi,
+        /problem.solving/gi, /critical thinking/gi, /communication skills/gi, /team leadership/gi,
+        /stakeholder management/gi, /strategic planning/gi, /financial analysis/gi, /risk management/gi,
+        /quality assurance/gi, /change management/gi, /agile methodology/gi, /scrum master/gi,
+        /customer service/gi, /supply chain/gi, /human resources/gi, /content creation/gi,
+        /social media/gi, /digital marketing/gi, /brand management/gi, /market research/gi,
+        /product management/gi, /ux design/gi, /ui design/gi, /cloud computing/gi,
+        /cyber security/gi, /information technology/gi, /software development/gi, /web development/gi,
+        /mobile development/gi, /database management/gi, /network administration/gi,
+        /system administration/gi, /devops/gi, /continuous integration/gi, /version control/gi,
+        /unit testing/gi, /integration testing/gi, /performance testing/gi,
+        /cross.functional/gi, /multi.tasking/gi, /time management/gi, /attention to detail/gi,
+        /report writing/gi, /presentation skills/gi, /negotiation skills/gi,
+        /customer relationship/gi, /business development/gi, /revenue growth/gi,
+        /cost reduction/gi, /process improvement/gi, /operational efficiency/gi
+    ];
+
+    phrasePatterns.forEach(pattern => {
+        const matches = text.match(pattern);
+        if (matches) {
+            matches.forEach(m => phrases.push(m));
+        }
+    });
+
+    // Extract single important words
+    const words = text.toLowerCase().replace(/[^a-z0-9\s\+\#\.]/g, ' ').split(/\s+/);
+    const importantWords = [];
+    const techKeywords = ['python','sql','java','javascript','react','angular','vue','node','django','flask','fastapi','aws','azure','gcp','docker','kubernetes','terraform','jenkins','git','github','gitlab','bitbucket','jira','confluence','tableau','powerbi','power bi','excel','word','ppt','html','css','sass','less','typescript','php','ruby','go','rust','kotlin','swift','flutter','react native','ionic','mongodb','mysql','postgresql','oracle','sql server','redis','elasticsearch','kafka','spark','hadoop','hive','airflow','dbt','snowflake','redshift','bigquery','looker','mode','metabase','superset','qlik','sas','spss','r','matlab','tensorflow','pytorch','scikit-learn','pandas','numpy','scipy','matplotlib','seaborn','plotly','d3.js','tableau','powerbi','alteryx','knime','rapidminer','data lake','data warehouse','etl','elt','api','rest','graphql','soap','microservices','serverless','lambda','ec2','s3','rds','dynamodb','sqs','sns','cloudfront','route53','iam','vpc','security group','load balancer','auto scaling','ci/cd','agile','scrum','kanban','lean','six sigma','pmp','prince2','itil','cobit','iso27001','gdpr','hipaa','sox','pci','cis','nist','owasp','penetration testing','vulnerability assessment','incident response','disaster recovery','business continuity','change management','release management','configuration management','asset management','service desk','it service management','customer success','account management','sales','marketing','finance','accounting','audit','compliance','regulatory','governance','hr','recruitment','talent acquisition','learning development','compensation benefits','employee relations','workplace safety','diversity inclusion','corporate social responsibility','sustainability','esg','circular economy','renewable energy','carbon footprint','climate change','environmental','social governance'];
+
+    words.forEach(w => {
+        if (w.length > 2 && !stopWords.has(w) && !/^\d+$/.test(w)) {
+            techKeywords.forEach(tech => {
+                if (w === tech || w.includes(tech)) {
+                    importantWords.push(w);
+                }
+            });
+            if (!importantWords.includes(w) && w.length > 4) {
+                importantWords.push(w);
+            }
+        }
+    });
+
+    // Combine and deduplicate
+    const allKeywords = [...new Set([...phrases.map(p => p.toLowerCase()), ...importantWords])];
+
+    // Sort by length (longer phrases first) then frequency
+    return allKeywords.sort((a, b) => b.length - a.length).slice(0, 25);
+}
+
+function generateMatcherCoverLetter(cvText, jobTitle, company, jobDesc, matched, missing) {
+    const name = document.getElementById('matcher-name').value.trim();
+    const email = document.getElementById('matcher-email').value.trim();
+    const phone = document.getElementById('matcher-phone').value.trim();
+    const portfolio = document.getElementById('matcher-portfolio').value.trim();
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Extract experience highlights from CV
+    const experienceHighlights = extractExperienceHighlights(cvText);
+
+    // Extract top skills from CV
+    const cvSkills = extractCVSkills(cvText);
+
+    let letter = '';
+    letter += name + '\n';
+    if (email) letter += email + '\n';
+    if (phone) letter += phone + '\n';
+    letter += '\n' + today + '\n\n';
+
+    letter += 'Dear Hiring Manager,\n\n';
+
+    // Opening paragraph - mention specific role and company
+    letter += 'I am writing to express my strong interest in the ' + jobTitle + ' position at ' + company + '. ';
+
+    if (matched.length > 0) {
+        letter += 'My background in ' + matched.slice(0, 3).join(', ').toLowerCase() + ' aligns closely with the requirements of this role. ';
+    }
+
+    letter += 'I am confident that my skills and experience make me a strong candidate for this position.\n\n';
+
+    // Body paragraph - use CV experience
+    letter += 'In my previous roles, ';
+
+    if (experienceHighlights.length > 0) {
+        letter += experienceHighlights.slice(0, 2).join(' Additionally, ').toLowerCase() + '. ';
+    } else {
+        letter += 'I have developed strong expertise in ' + cvSkills.slice(0, 4).join(', ').toLowerCase() + '. ';
+    }
+
+    letter += 'These experiences have prepared me to contribute effectively to ' + company + '\'s goals and objectives.\n\n';
+
+    // Skills paragraph - match with job requirements
+    if (matched.length > 0) {
+        letter += 'My key qualifications that directly match your requirements include:\n';
+        matched.slice(0, 6).forEach(skill => {
+            letter += '- ' + skill.charAt(0).toUpperCase() + skill.slice(1) + '\n';
+        });
+        letter += '\n';
+    }
+
+    // Address missing areas
+    if (missing.length > 0 && missing.length <= 5) {
+        letter += 'While my experience may not cover every aspect of the role, I am a quick learner and am committed to developing any additional skills needed. ';
+        letter += 'My strong foundation in ' + cvSkills.slice(0, 2).join(' and ').toLowerCase() + ' will enable me to adapt quickly to new challenges.\n\n';
+    }
+
+    // Closing paragraph
+    letter += 'I am excited about the opportunity to join ' + company + ' and contribute to your team\'s success. ';
+    letter += 'I would welcome the chance to discuss how my qualifications align with your needs in more detail.\n\n';
+
+    letter += 'Thank you for considering my application. I look forward to hearing from you.\n\n';
+    letter += 'Sincerely,\n';
+    letter += name;
+    if (portfolio) letter += '\n' + portfolio;
+
+    document.getElementById('match-cover-letter').innerText = letter;
+}
+
+function extractExperienceHighlights(cvText) {
+    const highlights = [];
+    const lines = cvText.split('\n');
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        // Look for lines with numbers/achievements
+        if (/\d+%|\d+\+|\$\d+|increased|reduced|improved|achieved|managed|led|developed|implemented|delivered|generated|saved|grew|expanded|launched|optimized|streamlined|automated/i.test(trimmed) && trimmed.length > 20 && trimmed.length < 300) {
+            highlights.push(trimmed);
+        }
+    });
+
+    return highlights.slice(0, 5);
+}
+
+function extractCVSkills(cvText) {
+    const skills = [];
+    const skillPatterns = ['python','sql','java','javascript','react','angular','vue','node','django','flask','aws','azure','gcp','docker','kubernetes','tableau','power bi','excel','html','css','typescript','php','ruby','go','mongodb','mysql','postgresql','redis','spark','hadoop','airflow','snowflake','tensorflow','pytorch','scikit-learn','pandas','numpy','agile','scrum','project management','data analysis','machine learning','business intelligence','financial analysis','stakeholder management','strategic planning','communication','leadership','problem solving','team management','budget management','risk management','quality assurance','process improvement','customer service','sales','marketing','digital marketing','content creation','social media','seo','sem','crm','erp','sap','salesforce','jira','confluence','git','github','ci/cd','devops','linux','windows','networking','cybersecurity','information security','cloud computing','serverless','microservices','api','rest','graphql','etl','data warehouse','data lake','big data','business analytics','report writing','presentation','negotiation','time management','attention to detail','multitasking','critical thinking','creative thinking','analytical skills','research','survey design','statistical analysis','r','matlab','sas','spss','bi tools','data visualization','dashboard','kpi','metrics','okr','roi','kpis'];
+
+    const cvLower = cvText.toLowerCase();
+    skillPatterns.forEach(skill => {
+        if (cvLower.includes(skill)) {
+            skills.push(skill);
+        }
+    });
+
+    return skills.length > 0 ? skills : ['relevant technical skills', 'professional experience', 'analytical abilities'];
+}
+
+function copyMatcherCover() {
+    const el = document.getElementById('match-cover-letter');
+    const text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text).then(() => alert('Cover letter copied to clipboard!'));
+}
+
+function downloadMatcherCoverPDF() {
+    const text = document.getElementById('match-cover-letter').innerText;
+    const win = window.open('', '_blank');
+    win.document.write('<html><head><title>Cover Letter</title><style>body{font-family:Calibri,sans-serif;padding:40px;font-size:12pt;line-height:1.8;color:#1a1a1a;white-space:pre-wrap;}</style></head><body>' + text + '</body></html>');
+    win.document.close();
+    win.print();
+}
+
+function downloadMatcherCoverWord() {
+    const text = document.getElementById('match-cover-letter').innerText;
+    const htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Calibri,sans-serif;font-size:11pt;line-height:1.8;white-space:pre-wrap;}</style></head><body>' + text + '</body></html>';
+    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+    downloadBlob(blob, 'CoverLetter_' + document.getElementById('matcher-company').value.replace(/\s+/g, '_') + '.doc');
+}
+
+function clearMatcherForm() {
+    document.getElementById('matcher-cv-text').value = '';
+    document.getElementById('matcher-jobtitle').value = '';
+    document.getElementById('matcher-company').value = '';
+    document.getElementById('matcher-jobdesc').value = '';
+    document.getElementById('matcher-name').value = '';
+    document.getElementById('matcher-email').value = '';
+    document.getElementById('matcher-phone').value = '';
+    document.getElementById('matcher-portfolio').value = '';
+    document.getElementById('cv-file').value = '';
+    document.getElementById('upload-filename').textContent = '';
+    uploadedCVText = '';
+
+    document.getElementById('match-score-value').textContent = '--';
+    document.getElementById('match-score-box').style.background = 'var(--navy)';
+    document.getElementById('matcher-placeholder').style.display = 'block';
+    document.getElementById('match-summary-section').style.display = 'none';
+    document.getElementById('match-keywords-section').style.display = 'none';
+    document.getElementById('match-missing-section').style.display = 'none';
+    document.getElementById('match-suggestions-section').style.display = 'none';
+    document.getElementById('match-cover-section').style.display = 'none';
+}

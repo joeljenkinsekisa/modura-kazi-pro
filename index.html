@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modura Analytics Kazi Pro | Build ATS-Friendly Resumes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-brand" onclick="showSection('home')">MODURA ANALYTICS <span class="gold">KAZI PRO</span></a>
+            <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#" onclick="showSection('home')">Home</a></li>
+                <li><a href="#" onclick="showSection('resume')">Resume Builder</a></li>
+                <li><a href="#" onclick="showSection('cover')">Cover Letter</a></li>
+                <li><a href="#" onclick="showSection('email')">Job Email</a></li>
+                <li><a href="#" onclick="showSection('ats')">ATS Checklist</a></li>
+                <li><a href="#" onclick="showSection('about')">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HOME SECTION -->
+    <section id="home" class="section active">
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Build Recruiter-Ready Resumes, Cover Letters, and Job Emails in Minutes</h1>
+                <p class="hero-sub">Create ATS-friendly documents that pass automated screening systems and get you noticed by hiring managers — no AI, no login, no payment required.</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="showSection('resume')">Start Building Resume</button>
+                    <button class="btn btn-outline" onclick="showSection('about')">Learn More</button>
+                </div>
+            </div>
+        </div>
+        <div class="features-section">
+            <h2 class="section-heading">Why Kazi Pro?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">&#128196;</div>
+                    <h3>ATS-Friendly Resumes</h3>
+                    <p>Simple formatting that passes Applicant Tracking Systems. No tables, columns, or graphics that confuse ATS software.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128221;</div>
+                    <h3>Professional Cover Letters</h3>
+                    <p>Generate confident, recruiter-friendly cover letters tailored to specific job descriptions and companies.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128231;</div>
+                    <h3>Job Application Emails</h3>
+                    <p>Create concise, professional job application emails with subject lines that grab attention.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#10004;</div>
+                    <h3>ATS Score Checker</h3>
+                    <p>Evaluate your resume against ATS criteria and get instant feedback on how to improve your score.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128274;</div>
+                    <h3>100% Private</h3>
+                    <p>All data stays in your browser. No servers, no accounts, no data collection. Your information never leaves your device.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#128176;</div>
+                    <h3>Completely Free</h3>
+                    <p>No hidden costs, no premium plans, no paywalls. Every feature is free forever.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESUME BUILDER SECTION -->
+    <section id="resume" class="section">
+        <div class="container">
+            <h2 class="section-heading">Resume Builder</h2>
+            <p class="section-sub">Fill in your details below. The builder generates a clean, ATS-friendly resume.</p>
+
+            <div class="builder-layout">
+                <div class="form-panel">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="r-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="r-phone" placeholder="+254 712 345 678" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address *</label>
+                            <input type="email" id="r-email" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="r-location" placeholder="Nairobi, Kenya">
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" id="r-linkedin" placeholder="linkedin.com/in/johndoe">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio / Website</label>
+                        <input type="url" id="r-portfolio" placeholder="johndoe.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Job Title *</label>
+                        <input type="text" id="r-jobtitle" placeholder="Data Analyst" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Professional Summary *</label>
+                        <textarea id="r-summary" rows="4" placeholder="Results-driven professional with 5+ years of experience in data analysis, reporting, and business intelligence. Proven ability to transform complex datasets into actionable insights that drive strategic decision-making." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Key Skills * (one per line)</label>
+                        <textarea id="r-skills" rows="4" placeholder="Python&#10;SQL&#10;Data Visualization&#10;Power BI&#10;Microsoft Excel" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Experience</label>
+                        <p class="hint">Enter each experience block in this format:</p>
+                        <textarea id="r-experience" rows="8" placeholder="Job Title | Company Name | Start Date - End Date&#10;Achievement/responsibility with measurable result&#10;Achievement/responsibility with measurable result&#10;&#10;Job Title | Company Name | Start Date - End Date&#10;Achievement/responsibility with measurable result"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Projects</label>
+                        <textarea id="r-projects" rows="5" placeholder="Project Name | Brief Description&#10;Key technologies used and outcomes achieved"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Education *</label>
+                        <textarea id="r-education" rows="4" placeholder="Degree | Institution | Year&#10;Relevant coursework or achievements" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Certifications</label>
+                        <textarea id="r-certifications" rows="3" placeholder="AWS Certified Data Analytics - 2024&#10;Google Data Analytics Certificate - 2023"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Tools & Technologies</label>
+                        <textarea id="r-tools" rows="3" placeholder="Python, SQL, Tableau, Power BI, Excel, Git, Jupyter Notebook"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="generateResume()">Generate Resume</button>
+                        <button class="btn btn-secondary" onclick="clearResumeForm()">Clear Form</button>
+                    </div>
+                </div>
+
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <h3>Resume Preview</h3>
+                        <div class="preview-actions">
+                            <button class="btn btn-small" onclick="copyResume()">Copy</button>
+                            <button class="btn btn-small" onclick="downloadResumePDF()">PDF</button>
+                            <button class="btn btn-small" onclick="downloadResumeWord()">Word</button>
+                        </div>
+                    </div>
+                    <div id="resume-preview" class="preview-content">
+                        <p class="placeholder-text">Fill in the form and click "Generate Resume" to see your ATS-friendly resume here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COVER LETTER SECTION -->
+    <section id="cover" class="section">
+        <div class="container">
+            <h2 class="section-heading">Cover Letter Builder</h2>
+            <p class="section-sub">Generate a professional cover letter tailored to your target role and company.</p>
+
+            <div class="builder-layout">
+                <div class="form-panel">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="c-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="c-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="c-phone" placeholder="+254 712 345 678">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Job Title *</label>
+                        <input type="text" id="c-jobtitle" placeholder="Senior Data Analyst" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name *</label>
+                        <input type="text" id="c-company" placeholder="Safaricom PLC" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hiring Manager Name (if known)</label>
+                        <input type="text" id="c-manager" placeholder="Jane Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Your Key Skills * (one per line)</label>
+                        <textarea id="c-skills" rows="4" placeholder="Data Analysis&#10;Python Programming&#10;Business Intelligence&#10;SQL Databases" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Main Experience / Achievements *</label>
+                        <textarea id="c-experience" rows="4" placeholder="Describe your most relevant experience and key achievements that match this role." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Description (paste key requirements)</label>
+                        <textarea id="c-jobdesc" rows="5" placeholder="Paste the job description or key requirements from the job posting here. This helps tailor the cover letter to the specific role."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="generateCoverLetter()">Generate Cover Letter</button>
+                        <button class="btn btn-secondary" onclick="clearCoverForm()">Clear Form</button>
+                    </div>
+                </div>
+
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <h3>Cover Letter Preview</h3>
+                        <div class="preview-actions">
+                            <button class="btn btn-small" onclick="copyCoverLetter()">Copy</button>
+                            <button class="btn btn-small" onclick="downloadCoverPDF()">PDF</button>
+                            <button class="btn btn-small" onclick="downloadCoverWord()">Word</button>
+                        </div>
+                    </div>
+                    <div id="cover-preview" class="preview-content">
+                        <p class="placeholder-text">Fill in the form and click "Generate Cover Letter" to preview your cover letter here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JOB EMAIL SECTION -->
+    <section id="email" class="section">
+        <div class="container">
+            <h2 class="section-heading">Job Application Email Builder</h2>
+            <p class="section-sub">Create a short, professional job application email with a compelling subject line.</p>
+
+            <div class="builder-layout">
+                <div class="form-panel">
+                    <div class="form-group">
+                        <label>Your Full Name *</label>
+                        <input type="text" id="e-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Email Address *</label>
+                        <input type="email" id="e-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Phone Number</label>
+                        <input type="tel" id="e-phone" placeholder="+254 712 345 678">
+                    </div>
+                    <div class="form-group">
+                        <label>Recipient Email *</label>
+                        <input type="email" id="e-recipient" placeholder="hr@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Job Title *</label>
+                        <input type="text" id="e-jobtitle" placeholder="Data Analyst" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name *</label>
+                        <input type="text" id="e-company" placeholder="Safaricom PLC" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio / LinkedIn URL</label>
+                        <input type="url" id="e-portfolio" placeholder="linkedin.com/in/johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label>One-Line Value Proposition</label>
+                        <textarea id="e-value" rows="2" placeholder="I bring 5+ years of data analysis experience with proven results in increasing operational efficiency by 30%."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="generateEmail()">Generate Email</button>
+                        <button class="btn btn-secondary" onclick="clearEmailForm()">Clear Form</button>
+                    </div>
+                </div>
+
+                <div class="preview-panel">
+                    <div class="preview-header">
+                        <h3>Email Preview</h3>
+                        <div class="preview-actions">
+                            <button class="btn btn-small" onclick="copyEmail()">Copy</button>
+                        </div>
+                    </div>
+                    <div id="email-preview" class="preview-content">
+                        <p class="placeholder-text">Fill in the form and click "Generate Email" to preview your job application email here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ATS CHECKLIST SECTION -->
+    <section id="ats" class="section">
+        <div class="container">
+            <h2 class="section-heading">ATS Resume Score Checker</h2>
+            <p class="section-sub">Check how well your resume performs against Applicant Tracking Systems.</p>
+
+            <div class="ats-layout">
+                <div class="form-panel ats-form">
+                    <div class="form-group">
+                        <label>Job Title *</label>
+                        <input type="text" id="ats-jobtitle" placeholder="Data Analyst">
+                    </div>
+                    <div class="form-group">
+                        <label>Professional Summary</label>
+                        <textarea id="ats-summary" rows="3" placeholder="Paste your professional summary here"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Key Skills (one per line)</label>
+                        <textarea id="ats-skills" rows="4" placeholder="Python&#10;SQL&#10;Data Visualization"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Experience (paste your experience section)</label>
+                        <textarea id="ats-experience" rows="5" placeholder="Paste your work experience section here"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Education</label>
+                        <textarea id="ats-education" rows="3" placeholder="Paste your education section here"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Does your resume have measurable achievements? (numbers, percentages, results)</label>
+                        <select id="ats-achievements">
+                            <option value="yes">Yes - I include specific numbers and results</option>
+                            <option value="no">No - I mostly list responsibilities</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Are you using relevant keywords from the job description?</label>
+                        <select id="ats-keywords">
+                            <option value="yes">Yes - I have matched keywords</option>
+                            <option value="no">No - I have not included job-specific keywords</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="checkATSScore()">Check ATS Score</button>
+                    </div>
+                </div>
+
+                <div class="ats-results" id="ats-results">
+                    <div class="ats-score-box" id="ats-score-box">
+                        <div class="ats-score-value" id="ats-score-value">--</div>
+                        <div class="ats-score-label">ATS Score</div>
+                    </div>
+                    <div class="ats-feedback" id="ats-feedback">
+                        <p class="placeholder-text">Enter your resume details and click "Check ATS Score" to evaluate your resume.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-heading">About Modura Analytics Kazi Pro</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Our Mission</h3>
+                    <p>Modura Analytics Kazi Pro is a free, browser-based career tool designed to help job seekers create professional, ATS-friendly resumes, cover letters, and job application emails. Built by Modura Analytics, a data and research consultancy, Kazi Pro combines expertise in data-driven decision making with practical career development tools.</p>
+
+                    <h3>Why We Built This</h3>
+                    <p>Many job seekers struggle with creating resumes that pass through Applicant Tracking Systems (ATS). These automated systems scan resumes for keywords, formatting, and structure before a human ever sees them. Poorly formatted resumes are often rejected before reaching a recruiter.</p>
+                    <p>Kazi Pro solves this problem by generating clean, simple, ATS-friendly documents using rule-based logic. No artificial intelligence, no data collection, no hidden costs.</p>
+
+                    <h3>How It Works</h3>
+                    <p>1. Fill in your personal details, skills, experience, and target job information.<br>
+                    2. The builder generates a clean, ATS-friendly resume, cover letter, or email.<br>
+                    3. Copy the text, download as PDF, or download as Word.<br>
+                    4. Use the ATS Checklist to verify your resume score before submitting.</p>
+
+                    <h3>Privacy First</h3>
+                    <p>All data is processed entirely in your browser using JavaScript. No information is sent to any server. Your personal data never leaves your device. When you close the browser, your data is deleted (unless stored in localStorage for your convenience).</p>
+
+                    <h3>About Modura Analytics</h3>
+                    <p>Modura Analytics is a data and research consultancy specializing in humanitarian, development, and public sector intelligence across Africa. Kazi Pro extends our commitment to data-driven solutions into the career development space.</p>
+                </div>
+                <div class="about-sidebar">
+                    <div class="sidebar-card">
+                        <h4>Quick Facts</h4>
+                        <ul>
+                            <li>100% Free — No hidden costs</li>
+                            <li>No login required</li>
+                            <li>No AI or API keys</li>
+                            <li>No data collection</li>
+                            <li>Works offline</li>
+                            <li>Mobile responsive</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-card">
+                        <h4>Contact</h4>
+                        <p><strong>Modura Analytics</strong><br>
+                        Jenkins Ekisa Joel<br>
+                        Data and Business Operations Consultant</p>
+                        <p>📧 joeljenkinsekisa@gmail.com<br>
+                        📞 +254791270147</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p><strong>Modura Analytics Kazi Pro</strong></p>
+            <p>Build recruiter-ready resumes, cover letters, and job emails in minutes.</p>
+            <p class="copyright">&copy; 2026 Modura Analytics. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
